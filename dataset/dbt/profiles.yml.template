@@ -1,0 +1,56 @@
+# dbt profile template for the companion dataset pipeline.
+#
+# Copy to ~/.dbt/profiles.yml (or set DBT_PROFILES_DIR) and fill in the
+# environment variables. All secrets read from the environment; nothing
+# in this template should be edited with a real value — that would leak
+# credentials on commit.
+#
+# Required environment variables:
+#   GCP_PROJECT                      BigQuery project id
+#   GCP_LOCATION                     Region, typically US
+#   GOOGLE_APPLICATION_CREDENTIALS   Absolute path to the service-account key
+#   BQ_DATASET_COMPANION             Target dataset for companion_dev / companion_canonical
+#
+# See docs/implementation_guide.md Phase 0 for the one-time setup.
+
+companion:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: service-account
+      project: "{{ env_var('GCP_PROJECT') }}"
+      dataset: "{{ env_var('BQ_DATASET_COMPANION', 'companion_dev') }}"
+      location: "{{ env_var('GCP_LOCATION', 'US') }}"
+      keyfile: "{{ env_var('GOOGLE_APPLICATION_CREDENTIALS') }}"
+      threads: 4
+      timeout_seconds: 300
+      priority: interactive
+      job_execution_timeout_seconds: 300
+      job_retries: 1
+
+    reader:
+      type: bigquery
+      method: service-account
+      project: "{{ env_var('GCP_PROJECT') }}"
+      dataset: "{{ env_var('BQ_DATASET_COMPANION', 'companion_reader') }}"
+      location: "{{ env_var('GCP_LOCATION', 'US') }}"
+      keyfile: "{{ env_var('GOOGLE_APPLICATION_CREDENTIALS') }}"
+      threads: 4
+      timeout_seconds: 600
+      priority: interactive
+      job_execution_timeout_seconds: 600
+      job_retries: 1
+
+    canonical:
+      type: bigquery
+      method: service-account
+      project: "{{ env_var('GCP_PROJECT') }}"
+      dataset: "{{ env_var('BQ_DATASET_COMPANION', 'companion_canonical') }}"
+      location: "{{ env_var('GCP_LOCATION', 'US') }}"
+      keyfile: "{{ env_var('GOOGLE_APPLICATION_CREDENTIALS') }}"
+      threads: 8
+      timeout_seconds: 1200
+      priority: batch
+      job_execution_timeout_seconds: 1200
+      job_retries: 1

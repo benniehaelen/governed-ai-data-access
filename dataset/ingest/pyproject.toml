@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ingest"
+version = "0.0.1"
+description = "Python ingest layer for the governed-ai-data-access companion dataset pipeline."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+
+# Dependencies pinned to specific minor versions per Phase 1 of the implementation
+# guide. Patch upgrades are allowed; minor/major upgrades require a deliberate bump
+# and a regeneration of the golden-answer snapshots (see pipeline plan, Section 9).
+dependencies = [
+    "google-cloud-bigquery ~= 3.27.0",
+    "google-cloud-storage ~= 2.19.0",
+    "pandas ~= 2.2.0",
+    "pyarrow ~= 18.1.0",
+    "pydantic ~= 2.10.0",
+    "click ~= 8.1.0",
+    "pyyaml ~= 6.0.2",
+    "jinja2 ~= 3.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest ~= 8.3.0",
+    "ruff ~= 0.9.0",
+    "mypy ~= 1.14.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unused_ignores = true

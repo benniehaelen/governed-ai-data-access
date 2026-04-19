@@ -1,66 +1,92 @@
-# governed-ai-data-access starter bundle
+# governed-ai-data-access
 
-This bundle is the concrete starting point for the companion repository of
-the "Governed AI Data Access" book. Files are already laid out to match
-their target locations in the monorepo, so you can unzip into an empty
-directory, `git init`, and proceed.
+Companion monorepo for the book **Governed AI Data Access**. Contains three
+subsystems plus an evaluation harness that together produce the exact dataset
+the book's examples reference, the retrieval-and-resolver layer the book
+teaches how to build, and the authoring environment that owns the knowledge
+graph and the metrics registry.
 
-## What is in here
+Everything that is cloneable and runnable from chapter to chapter lives here.
+
+## Subsystems
 
 ```
-governed-ai-data-access-starter/
-├── Makefile                                  # Phase 2 wired; later phases stubbed
-├── docs/
-│   ├── Book_Data_Pipeline_Plan.docx          # monorepo pipeline plan
-│   └── implementation_guide.md               # phase-by-phase runbook
-├── scripts/
-│   ├── export_spec_to_yaml.py                # workbook → versioned YAML
-│   └── spec_consistency_check.py             # cross-reference gate
-└── spec/
-    ├── Companion_Dataset_Specification.xlsx  # source of truth
-    └── generated/                            # pre-generated YAML (see note below)
-        ├── tables/<data_product>/*.yaml      # 41 table specs
-        ├── business_rules/*.yaml             # 20 rules
-        ├── kpis/*.yaml                       # 5 KPIs
-        ├── data_products.yaml
-        ├── date_format_coverage.yaml
-        └── resolver_coverage_matrix.yaml
+dataset/          Python ingest + dbt transformation pipeline (Chapters 2, 7, 8, 9, 10)
+mcp_server/       Nine-step query pipeline and governed resolvers (Chapters 3, 6-10)
+studio/           Knowledge Graph Studio, browser-based authoring (Chapters 4-5)
+evaluation/       Release-gate test harness spanning all three subsystems (Chapter 11)
+
+spec/             Single source of truth: the dataset specification workbook
+rules/            Business rules + metrics YAML, consumed by dataset and mcp_server
+scripts/          Cross-subsystem utilities (spec export, consistency check, bootstrap)
+docs/             Architecture, quickstart, chapter map, pipeline plan
 ```
 
-## Note on `spec/generated/`
+The pipeline plan (`docs/Book_Data_Pipeline_Plan.docx`) is the authoritative
+layout reference. The implementation guide (`docs/implementation_guide.md`)
+is the phased, executable plan for building each subsystem.
 
-The YAML under `spec/generated/` was produced by running
-`scripts/export_spec_to_yaml.py` against the workbook and is included so
-you can inspect the shape without running anything. Normally you would
-not commit this directory; it is a build artifact derivable from the
-workbook. `make clean-spec` removes it; `make spec-export` rebuilds it.
+## Where to start
 
-## First run
+| Role                           | Read first                                                  |
+| ------------------------------ | ----------------------------------------------------------- |
+| Book reader cloning at a tag   | `docs/chapter_map.md`, then the quickstart for your chapter |
+| Contributor extending the repo | `docs/implementation_guide.md`                              |
+| Reviewer evaluating scope      | `docs/Book_Data_Pipeline_Plan.docx`                         |
+| Claude Code agent              | `CLAUDE.md`                                                 |
+
+## What works today
+
+At the `chapter-01` tag, only the spec export and consistency check are wired:
 
 ```bash
-make help              # list all targets with descriptions
-make spec-check        # exercise the Phase 2 pipeline end to end
+make help              # list all Makefile targets
+make install           # pip install -e dataset/ingest plus dev deps
+make spec-export       # Excel workbook -> spec/generated/*.yaml
+make spec-check        # cross-reference validation; CI gate in strict mode
 ```
 
-The `spec-check` run against the workbook as shipped will surface one
-real consistency error in `METRIC_ED_DOOR_TO_PROVIDER` (the `Tables`
-column reads `encounter (emergency type)` instead of `encounter`). Fix
-the cell in the workbook and the check passes clean. See the
-implementation guide for context.
+Phases 3 through 14 of `docs/implementation_guide.md` are stubbed in the
+Makefile. Each stub fails loudly with a `NOT-YET-IMPLEMENTED` message pointing
+back to the guide.
 
-## Where to go from here
+## Configuration
 
-Open `docs/implementation_guide.md` and start at Phase 1. Phases 1 and 2
-are the scaffolding and spec-export work. Everything in this bundle
-supports those two phases; Phase 3 onward is wired into the Makefile as
-stubs that will fail loudly until you implement them.
+Every credential and project identifier comes from the environment, never the
+repository. Set these before running anything that touches GCP:
 
-## What is deliberately not here
+```bash
+export GCP_PROJECT=your-sandbox-project
+export GCP_LOCATION=US
+export GOOGLE_APPLICATION_CREDENTIALS=/absolute/path/to/sa-key.json
+```
 
-- `dataset/`, `mcp_server/`, `studio/`, `evaluation/` directories. These
-  will appear as you execute Phase 1 of the implementation guide. The
-  bundle stops at the files needed to kick off that work.
-- `.envrc` or any credentials. You provide GCP_PROJECT, GCP_LOCATION,
-  and a service-account key path through your own environment.
-- Synthea JAR and config. Pin a version and drop it under
-  `tools/synthea/` when you reach Phase 3.
+Scale is selected in `dataset/config/dataset.yaml`. The three named scales —
+`dev` (1k patients, under 5 min), `reader` (10k, ~$2), `canonical` (100k, ~$25) —
+match Section 8 of the pipeline plan.
+
+## Release tags and the golden-answer contract
+
+Every chapter in the book corresponds to a git tag (`chapter-02`, `chapter-03`,
+and so on). A tag captures the full monorepo state: dataset, MCP Server,
+Studio, and evaluation harness together. Upgrading Synthea, dbt, the BigQuery
+client, or any other pinned dependency invalidates the committed
+`evaluation/golden_answers/kpi_snapshots.csv` and forces a regeneration pass.
+This is intentional friction: the book is a long-lived artifact and silent
+dependency drift is a real risk.
+
+## A note on the data
+
+Every patient, encounter, claim, facility, provider, and diagnosis in this
+repository is synthetic. The patients come from Synthea with a fixed seed; the
+supporting tables (schedule, coverage, formulary, adjustments) are generated
+deterministically from seeds derived from module names. No real clinical
+record is ever present. Do not use this dataset for any purpose other than
+following the book's examples.
+
+## Links
+
+- Pipeline plan: [`docs/Book_Data_Pipeline_Plan.docx`](docs/Book_Data_Pipeline_Plan.docx)
+- Implementation guide: [`docs/implementation_guide.md`](docs/implementation_guide.md)
+- Chapter map: [`docs/chapter_map.md`](docs/chapter_map.md)
+- Spec workbook: [`spec/Companion_Dataset_Specification.xlsx`](spec/Companion_Dataset_Specification.xlsx)

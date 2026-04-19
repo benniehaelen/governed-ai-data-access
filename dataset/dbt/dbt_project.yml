@@ -1,0 +1,63 @@
+name: "companion"
+version: "0.0.1"
+config-version: 2
+
+profile: "companion"
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+analysis-paths: ["analyses"]
+snapshot-paths: ["snapshots"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+  - "logs"
+
+# Model materializations by Data Product. The six Data Products come from
+# spec/generated/data_products.yaml. Zone subfolders mirror each product's
+# `zones_present` list.
+#
+# Default materialization is `table`. Per-zone overrides will be added as
+# models are introduced in Phases 9-10 of docs/implementation_guide.md.
+# Partition and cluster hints are not yet set here; they come from each
+# table's YAML spec and will be applied in-model or via this config in
+# Phase 7.
+models:
+  companion:
+    +materialized: table
+    clinical_core:
+      bronze:
+        +schema: clinical_core_bronze
+      silver:
+        +schema: clinical_core_silver
+      gold:
+        +schema: clinical_core_gold
+    revenue_cycle:
+      silver:
+        +schema: revenue_cycle_silver
+      gold:
+        +schema: revenue_cycle_gold
+    quality_reporting:
+      gold:
+        +schema: quality_reporting_gold
+    workforce:
+      silver:
+        +schema: workforce_silver
+      gold:
+        +schema: workforce_gold
+    supply_chain:
+      bronze:
+        +schema: supply_chain_bronze
+      silver:
+        +schema: supply_chain_silver
+      gold:
+        +schema: supply_chain_gold
+    reference:
+      gold:
+        +schema: reference_gold
+    metrics:
+      +schema: metrics

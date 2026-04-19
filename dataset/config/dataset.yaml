@@ -1,0 +1,47 @@
+# Dataset configuration template.
+#
+# Edits to this file change the scale and target of the pipeline run.
+# The three named scales (dev, reader, canonical) match the pipeline plan
+# Section 8. The `scale` key selects which block applies.
+#
+# Every random source in the pipeline (Synthea, synthetic tables, coverage
+# shuffles) derives its seed from `seed` below. Do not change this value
+# in-place on a committed build — doing so invalidates golden-answer
+# snapshots. Bump seeds in a release commit only.
+
+scale: dev                     # one of: dev, reader, canonical, research
+seed: 42
+
+bigquery:
+  project: ${GCP_PROJECT}      # resolved from environment at run time
+  location: ${GCP_LOCATION:-US}
+  staging_dataset: staging_bronze
+  companion_dataset: companion_dev
+
+scales:
+  dev:
+    synthea_population: 1000
+    dbt_target: dev
+    # Golden-answer regression runs in exact mode at dev scale (smaller data,
+    # determinism is tractable).
+    golden_answer_mode: exact
+
+  reader:
+    synthea_population: 10000
+    dbt_target: reader
+    # Directional agreement with canonical; 1% tolerance per pipeline plan.
+    golden_answer_mode: tolerance
+    golden_answer_tolerance: 0.01
+
+  canonical:
+    synthea_population: 100000
+    dbt_target: canonical
+    # The configuration the book cites. Golden answers are generated here.
+    golden_answer_mode: generate_or_exact
+    golden_answer_tolerance: 0.01
+
+  research:
+    synthea_population: 500000
+    dbt_target: canonical
+    golden_answer_mode: tolerance
+    golden_answer_tolerance: 0.02
