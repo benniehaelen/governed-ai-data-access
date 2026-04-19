@@ -1,0 +1,31 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# dbt
+dataset/dbt/target/
+dataset/dbt/dbt_packages/
+dataset/dbt/logs/
+dataset/dbt/profiles.yml
+
+# Build artifacts derivable from the workbook
+spec/generated/
+
+# Synthea output
+tmp/
+
+# Local env and secrets
+.envrc
+*.key
+*.json
+!package.json
+!package-lock.json
+
+# OS / editor cruft
+.DS_Store
+.idea/
+.vscode/
