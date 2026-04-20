@@ -30,3 +30,4 @@ tmp/
 .idea/
 .vscode/
 *.zip
+.claude/
