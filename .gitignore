@@ -31,3 +31,6 @@ tmp/
 .vscode/
 *.zip
 .claude/
+
+# Claude Code session artifacts
+.claude/

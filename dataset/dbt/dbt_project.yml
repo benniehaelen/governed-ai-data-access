@@ -26,6 +26,10 @@ clean-targets:
 # Partition and cluster hints are not yet set here; they come from each
 # table's YAML spec and will be applied in-model or via this config in
 # Phase 7.
+#
+# TODO(Phase 9): Apply partition_by and cluster_by from spec/generated/tables/*.yaml
+# to each Data Product's gold zone. Cost estimate in pipeline plan Section 11.2
+# assumes partitioning is correct.
 models:
   companion:
     +materialized: table
